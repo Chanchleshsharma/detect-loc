@@ -1,0 +1,74 @@
+
+<div style="padding: 2rem 0; display: flex; flex-direction: column; align-items: center; gap: 1.5rem;">
+  <h2 class="sr-only"></h2>
+
+  <div style="text-align: center;">
+    <p style="font-size: 16px; color: var(--color-text-secondary); margin: 0 0 1.5rem;">Click the button</p>
+    <a id="loc-btn" href="#" style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 28px; border-radius: var(--border-radius-lg); border: 0.5px solid var(--color-border-secondary); font-size: 15px; font-weight: 500; color: var(--color-text-primary); text-decoration: none; background: var(--color-background-primary); cursor: pointer;">
+      <i class="ti ti-map-pin" style="font-size: 18px;" aria-hidden="true"></i>
+      hello
+    </a>
+  </div>
+
+  <div id="result-box" style="display: none; width: 100%; max-width: 420px; background: var(--color-background-secondary); border-radius: var(--border-radius-lg); border: 0.5px solid var(--color-border-tertiary); padding: 1.25rem;">
+    <p id="status-text" style="font-size: 14px; color: var(--color-text-secondary); margin: 0 0 0.75rem;"></p>
+    <div id="coords" style="font-size: 15px; color: var(--color-text-primary); margin-bottom: 1rem;"></div>
+    <a id="maps-link" href="#" target="_blank" style="display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: var(--color-text-info); text-decoration: none;">
+      <i class="ti ti-external-link" style="font-size: 16px;" aria-hidden="true"></i>
+      '/'
+    </a>
+  </div>
+
+  <div id="error-box" style="display: none; width: 100%; max-width: 420px; background: var(--color-background-danger); border-radius: var(--border-radius-lg); border: 0.5px solid var(--color-border-danger); padding: 1rem;">
+    <p id="error-text" style="font-size: 14px; color: var(--color-text-danger); margin: 0;"></p>
+  </div>
+</div>
+
+<script>
+document.getElementById('loc-btn').addEventListener('click', function(e) {
+  e.preventDefault();
+  const resultBox = document.getElementById('result-box');
+  const errorBox = document.getElementById('error-box');
+  const statusText = document.getElementById('status-text');
+  const coords = document.getElementById('coords');
+  const mapsLink = document.getElementById('maps-link');
+  const errorText = document.getElementById('error-text');
+
+  resultBox.style.display = 'none';
+  errorBox.style.display = 'none';
+
+  if (!navigator.geolocation) {
+    errorBox.style.display = 'block';
+    errorText.textContent = 'Geolocation is not supported by your browser.';
+    return;
+  }
+
+  statusText.textContent = 'Detecting your location…';
+  coords.textContent = '';
+  mapsLink.href = '#';
+  resultBox.style.display = 'block';
+
+  navigator.geolocation.getCurrentPosition(
+    function(pos) {
+      const lat = pos.coords.latitude.toFixed(6);
+      const lon = pos.coords.longitude.toFixed(6);
+      const acc = Math.round(pos.coords.accuracy);
+      statusText.textContent = 'Location found ✓';
+      coords.innerHTML = `<strong>Latitude:</strong> ${lat}<br><strong>Longitude:</strong> ${lon}<br><span style="font-size:13px;color:var(--color-text-secondary);">Accuracy: ±${acc} m</span>`;
+      const url = `https://www.google.com/maps?q=${lat},${lon}`;
+      mapsLink.href = url;
+    },
+    function(err) {
+      resultBox.style.display = 'none';
+      errorBox.style.display = 'block';
+      const msgs = {
+        1: 'Permission denied. Please allow location access in your browser settings.',
+        2: 'Position unavailable. Could not detect your location.',
+        3: 'Request timed out. Please try again.'
+      };
+      errorText.textContent = msgs[err.code] || 'An unknown error occurred.';
+    },
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
+});
+</script>
